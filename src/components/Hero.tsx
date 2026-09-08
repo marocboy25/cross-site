@@ -13,6 +13,11 @@ export const SCROLL_HEIGHT_VH_MOBILE = 220
 const SMOOTHING = 0.1
 /** Below this delta the video is considered settled and we stop seeking. */
 const SETTLE_EPSILON = 0.0005
+/**
+ * Minimum change in seconds before we issue a seek. Seeking is the expensive
+ * part (decode + paint), so anything under ~1 frame at 30fps is skipped.
+ */
+const MIN_SEEK_DELTA = 0.03
 
 const DESKTOP_SRC = asset('videoDesktop')
 const MOBILE_SRC = asset('videoMobile')
@@ -142,7 +147,7 @@ export default function Hero() {
         const duration = video.duration
         if (Number.isFinite(duration) && duration > 0) {
           const target = smoothProgress.current * duration
-          if (Math.abs(video.currentTime - target) > 0.001) {
+          if (Math.abs(video.currentTime - target) > MIN_SEEK_DELTA) {
             video.currentTime = target
           }
         }

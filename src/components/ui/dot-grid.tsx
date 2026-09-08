@@ -1,8 +1,20 @@
-import { useId, useMemo, type SVGProps } from 'react'
+import { useId, type SVGProps } from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * Grid — a faint grid-pattern texture with a few randomly highlighted cells.
+ * Fixed highlight cells (was Math.random per mount). A constant pattern costs
+ * nothing on re-render and looks identical on every visit.
+ */
+const DEFAULT_PATTERN: number[][] = [
+  [7, 1],
+  [9, 3],
+  [8, 5],
+  [10, 2],
+  [7, 6],
+]
+
+/**
+ * Grid — a faint grid-pattern texture with a few highlighted cells.
  * Pulled from the "feature section with card gradient" block; only the
  * background helper is kept. Place inside a `relative isolate` parent.
  */
@@ -15,17 +27,7 @@ export const Grid = ({
   size?: number
   className?: string
 }) => {
-  const p = useMemo(
-    () =>
-      pattern ?? [
-        [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
-        [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
-        [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
-        [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
-        [Math.floor(Math.random() * 4) + 7, Math.floor(Math.random() * 6) + 1],
-      ],
-    [pattern],
-  )
+  const p = pattern ?? DEFAULT_PATTERN
 
   return (
     <div

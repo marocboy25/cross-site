@@ -96,6 +96,21 @@ body {
   border-width: 10px;
 }
 
+/* Touch devices have no hovering pointer, so the follow-glow can never show.
+   Drop the fixed-attachment gradients (repainted on every scroll on mobile)
+   and the blurred glow layer; keep the glass colour and border. */
+@media (hover: none) {
+  [data-glow] {
+    background-image: none !important;
+    background-attachment: scroll !important;
+  }
+  [data-glow]::before,
+  [data-glow]::after,
+  [data-glow] > [data-glow] {
+    display: none;
+  }
+}
+
 /* ---- Load animations (independent of the scroll-scrub) ---- */
 @keyframes heroReveal { 0%{opacity:0;transform:translateY(28px);filter:blur(12px)} 100%{opacity:1;transform:translateY(0);filter:blur(0)} }
 @keyframes heroFadeUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }

@@ -60,6 +60,9 @@ export function GlowCard({
   const innerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Touch devices have no hovering pointer, so the follow-glow is invisible
+    // there; skip the listener (and the per-move style writes) entirely.
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     if (pointerSubscribers === 0) {
       document.addEventListener('pointermove', syncPointer)
     }
@@ -129,7 +132,7 @@ export function GlowCard({
       className={cn(
         getSizeClasses(),
         !customSize && 'aspect-[3/4]',
-        'rounded-2xl relative grid grid-rows-[1fr_auto] shadow-[0_1rem_2rem_-1rem_black] p-4 gap-4 backdrop-blur-[5px]',
+        'rounded-2xl relative grid grid-rows-[1fr_auto] shadow-[0_1rem_2rem_-1rem_black] p-4 gap-4 md:backdrop-blur-[5px]',
         className,
       )}
     >

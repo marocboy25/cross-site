@@ -30,7 +30,8 @@ export default function SiteNav() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between p-4 sm:p-5 bg-black/60 backdrop-blur-md">
+      {/* Solid on mobile; translucent + blur only from md, where backdrop-filter is affordable */}
+      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between p-4 sm:p-5 bg-black/80 md:bg-black/60 md:backdrop-blur-md">
         <Link to="/" className="flex items-center gap-2.5" aria-label="Cross home">
           <LogoMark />
           <span className="text-white text-xl font-grotesk font-bold">Cross</span>
@@ -63,7 +64,7 @@ export default function SiteNav() {
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className="md:hidden flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-white"
+          className="md:hidden flex h-10 w-10 items-center justify-center rounded-full bg-white/10 border border-white/15 text-white"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
         >
@@ -72,7 +73,7 @@ export default function SiteNav() {
       </nav>
 
       {menuOpen && (
-        <div className="md:hidden fixed inset-x-4 top-[72px] z-[99] rounded-2xl border border-white/15 bg-[var(--panel)]/95 backdrop-blur-md p-3 flex flex-col gap-1">
+        <div className="md:hidden fixed inset-x-4 top-[72px] z-[99] rounded-2xl border border-white/15 bg-[var(--panel)] p-3 flex flex-col gap-1">
           {NAV_LINKS.map(({ label, to }, i) => (
             <Link
               key={label}

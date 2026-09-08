@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useInView } from '@/lib/use-in-view'
 import { cn } from '@/lib/utils'
 
 export interface ShimmerTextProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -11,7 +12,8 @@ export interface ShimmerTextProps extends React.HTMLAttributes<HTMLSpanElement> 
 /**
  * ShimmerText — a bright highlight sweeps across the text. The base color is
  * whatever `color` (e.g. `text-[#C026F5]`) the caller sets, because the
- * gradient is built from `currentColor`.
+ * gradient is built from `currentColor`. The animation runs only while the
+ * element is on screen.
  */
 export function ShimmerText({
   className,
@@ -21,8 +23,12 @@ export function ShimmerText({
   children,
   ...props
 }: ShimmerTextProps) {
+  const ref = React.useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref)
+
   return (
     <span
+      ref={ref}
       className={cn('inline-block animate-shimmer bg-clip-text', className)}
       style={{
         backgroundImage: `linear-gradient(100deg, currentColor 35%, ${shimmerColor} 50%, currentColor 65%)`,
@@ -30,6 +36,7 @@ export function ShimmerText({
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         animationDuration: `${duration}s`,
+        animationPlayState: inView ? 'running' : 'paused',
         ...style,
       }}
       {...props}
