@@ -132,39 +132,40 @@ export default function Hero() {
         className="sticky top-0 w-full h-screen overflow-hidden bg-black"
         style={{ height: '100dvh' }}
       >
-        {/* 1. Video layer */}
+        {/* 1. Video layer — only the element for the current viewport is
+            mounted, so phones never download the desktop file as well. */}
         {reducedMotion ? (
           <img
             src={POSTER_SRC}
             alt=""
             className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
           />
+        ) : isDesktop ? (
+          <video
+            ref={videoDesktopRef}
+            src={DESKTOP_SRC}
+            poster={POSTER_SRC}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
+          />
         ) : (
-          <>
-            <video
-              ref={videoDesktopRef}
-              src={DESKTOP_SRC}
-              poster={POSTER_SRC}
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              className="hidden md:block absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
-            />
-            <video
-              ref={videoMobileRef}
-              src={mobileFallback ? DESKTOP_SRC : MOBILE_SRC}
-              poster={POSTER_SRC}
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              onError={mobileFallback ? undefined : handleMobileError}
-              className={`md:hidden absolute inset-0 z-10 w-full h-full pointer-events-none ${
-                mobileFallback ? 'object-contain' : 'object-cover'
-              }`}
-            />
-          </>
+          // The mobile file is a lighter 3:2 crop of the same graphic, shown
+          // letterboxed (the page is pure black, so the bars blend in). If it
+          // fails to load, fall back to the desktop file the same way.
+          <video
+            ref={videoMobileRef}
+            src={mobileFallback ? DESKTOP_SRC : MOBILE_SRC}
+            poster={POSTER_SRC}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            onError={mobileFallback ? undefined : handleMobileError}
+            className="absolute inset-0 z-10 w-full h-full object-contain pointer-events-none"
+          />
         )}
 
         {/* 2. Vignette overlay */}
