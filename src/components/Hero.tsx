@@ -184,16 +184,26 @@ export default function Hero() {
             className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
           />
         ) : isDesktop ? (
-          <video
-            ref={videoDesktopRef}
-            src={DESKTOP_SRC}
-            poster={POSTER_SRC}
-            muted
-            playsInline
-            preload="auto"
-            disablePictureInPicture
-            className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
-          />
+          // The desktop file is 1920x1080. Cap the element at its native size and
+          // use object-contain so it is never upscaled (upscaling blurs the frame
+          // and adds work to every seek). On wider screens the margins are black
+          // with a soft violet glow behind the video so they read as intentional.
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black pointer-events-none">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_50%,rgba(192,38,245,0.16),transparent_70%)]"
+            />
+            <video
+              ref={videoDesktopRef}
+              src={DESKTOP_SRC}
+              poster={POSTER_SRC}
+              muted
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              className="relative mx-auto h-full w-full max-w-[1920px] max-h-[1080px] object-contain"
+            />
+          </div>
         ) : (
           // The mobile file is a lighter 3:2 crop of the same graphic, shown
           // letterboxed (the page is pure black, so the bars blend in). If it
@@ -221,7 +231,7 @@ export default function Hero() {
               className="hero-anim hero-reveal block font-semibold text-5xl sm:text-7xl md:text-8xl"
               style={{ letterSpacing: '-0.03em', animationDelay: '0.25s' }}
             >
-              Whale-sized stock trades.
+              Big stock positions.
             </span>
             <span
               className="hero-anim hero-reveal block font-semibold text-5xl sm:text-7xl md:text-8xl -mt-1 text-[#C026F5]"
