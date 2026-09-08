@@ -61,6 +61,48 @@ export default function Hero() {
     setMobileFallback(true)
   }, [])
 
+  // Mobile browsers (iOS Safari especially) won't decode or paint frames in
+  // response to `currentTime` changes until the element has been "activated"
+  // by a play() call; the poster just sits there. A muted play-then-pause
+  // right after mount unlocks it. If the browser refuses (e.g. Low Power
+  // Mode), retry on the first touch, which counts as a user gesture.
+  useEffect(() => {
+    if (reducedMotion) return
+    const video = isDesktop ? videoDesktopRef.current : videoMobileRef.current
+    if (!video) return
+
+    let unlocked = false
+    const gestureEvents = ['touchstart', 'pointerdown', 'keydown'] as const
+    const stopListening = () =>
+      gestureEvents.forEach((evt) => window.removeEventListener(evt, unlock))
+
+    const unlock = () => {
+      if (unlocked) return
+      video.muted = true
+      video.defaultMuted = true
+      const attempt = video.play()
+      if (attempt && typeof attempt.then === 'function') {
+        attempt
+          .then(() => {
+            video.pause()
+            unlocked = true
+            stopListening()
+          })
+          .catch(() => {
+            /* blocked without a gesture; a touch will retry */
+          })
+      } else {
+        video.pause()
+        unlocked = true
+        stopListening()
+      }
+    }
+
+    unlock()
+    gestureEvents.forEach((evt) => window.addEventListener(evt, unlock, { passive: true }))
+    return stopListening
+  }, [reducedMotion, isDesktop, mobileFallback])
+
   useEffect(() => {
     if (reducedMotion) return
     const section = sectionRef.current
