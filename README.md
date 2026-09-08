@@ -1,6 +1,9 @@
-# Cross — scroll-scrubbed hero
+# Cross — marketing site
 
-React 18 + TypeScript + Vite + Tailwind CSS + lucide-react.
+Live at https://usecrossp2p.com (Vercel, auto-deploys from `main` on GitHub `marocboy25/cross-site`).
+The app itself lives at https://crossp2p.com.
+
+React 18 + TypeScript + Vite + Tailwind CSS + lucide-react + react-router-dom.
 
 ```bash
 npm install
