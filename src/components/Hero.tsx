@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { OriginButton } from '@/components/ui/origin-button'
 import { asset } from '@/lib/assets'
+import { APP_URL, EXTERNAL_LINK_PROPS } from '@/lib/links'
 
 /** Scroll distance (in vh) the hero video is scrubbed across. Tune freely. */
 export const SCROLL_HEIGHT_VH = 300
@@ -251,7 +252,7 @@ export default function Hero() {
             If the deal falls through, funds return automatically. Built for trades
             too big for any single pool.
           </p>
-          <OriginButton type="button" variant="brand" size="lg">
+          <OriginButton href={APP_URL} {...EXTERNAL_LINK_PROPS} variant="brand" size="lg">
             Start Escrow
             <ArrowRight size={16} strokeWidth={2.25} />
           </OriginButton>

@@ -59,7 +59,7 @@ export function CtaSection({ className }: { className?: string }) {
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
-            <OriginButton type="button" variant="brand" size="lg">
+            <OriginButton href={APP_URL} {...EXTERNAL_LINK_PROPS} variant="brand" size="lg">
               <Zap size={16} strokeWidth={2.25} aria-hidden="true" />
               Start Escrow
             </OriginButton>
