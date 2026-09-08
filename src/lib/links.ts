@@ -1,5 +1,5 @@
 /** External URL of the live Cross app (opens in a new tab). */
-export const APP_URL = 'https://crossp2p.com'
+export const APP_URL = 'https://www.crossp2p.com/?v=2'
 
 export const EXTERNAL_LINK_PROPS = { target: '_blank', rel: 'noopener noreferrer' } as const
 
