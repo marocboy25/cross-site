@@ -44,14 +44,31 @@ export const HERO = {
   secondary: 'How it works',
 }
 
+export type OrderSide = { side: string; amount: string; sub: string; /** Show the Cross mark beside the amount. */ crossMark?: boolean }
+
 /**
- * The two orders in the hero. Price is the Chainlink NVDA spot the app showed
- * on 7 Oct 2026 (0.088930 ETH/token); 20 NVDA keeps it under the 2 ETH cap.
+ * The orders the hero rotates through, every few seconds. Amounts are
+ * illustrative, not live prices (the hero says so): on 8 Oct 2026 the app
+ * showed ETH at $2,568 and NVDA at 0.092361 ETH. The CROSS pair has no
+ * amounts because the app lists no CROSS price.
  */
 export const CROSSING = {
-  sell: { side: 'Seller', amount: '20 NVDA', sub: '@ 0.088930 ETH' },
-  buy: { side: 'Buyer', amount: '1.7786 ETH', sub: '+ 0.5% fee' },
+  pairs: [
+    {
+      sell: { side: 'Seller', amount: '2.5 ETH', sub: '@ 3,600 USDG' },
+      buy: { side: 'Buyer', amount: '9,000 USDG', sub: '+ 0.5% fee' },
+    },
+    {
+      sell: { side: 'Seller', amount: '20 NVDA', sub: '@ 0.088930 ETH' },
+      buy: { side: 'Buyer', amount: '1.7786 ETH', sub: '+ 0.5% fee' },
+    },
+    {
+      sell: { side: 'Seller', amount: 'CROSS', sub: 'Your price', crossMark: true },
+      buy: { side: 'Buyer', amount: 'ETH', sub: '+ 0.5% fee' },
+    },
+  ] satisfies { sell: OrderSide; buy: OrderSide }[],
   settle: '0.00% price impact',
+  note: 'Illustrative amounts',
 }
 
 /** Stat strip under the hero. `positive` values show in the app's green. */
@@ -63,11 +80,13 @@ export const STATS = [
 ]
 
 /**
- * Ticker band. Only tokens the app itself lists: the three verified stock
- * tokens and the two quote assets. Add more only once the app supports them.
+ * Ticker band: Cross's own token first, then only tokens the app itself
+ * lists (the three verified stock tokens and the two quote assets). Add more
+ * only once the app supports them. Logos: see components/TokenLogo.tsx.
  */
 export const TICKER = {
   tokens: [
+    { symbol: 'CROSS', name: 'Cross' },
     { symbol: 'NVDA', name: 'Nvidia' },
     { symbol: 'AAPL', name: 'Apple' },
     { symbol: 'TSLA', name: 'Tesla' },
@@ -161,6 +180,7 @@ export const FINAL_CTA = {
 export const FOOTER = {
   blurb: 'Peer to peer exchange. First on Robinhood Chain, other chains later.',
   disclaimer: 'Contracts internally tested, audit pending. Not financial advice.',
+  trademarks: 'Logos and tickers belong to their respective owners. Cross is not affiliated with them.',
   links: [
     { label: 'App', href: LINKS.app },
     { label: 'X', href: LINKS.x },

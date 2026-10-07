@@ -1,3 +1,4 @@
+import { TokenLogo } from '../components/TokenLogo'
 import { TICKER } from '../content/site'
 
 /** One run of the band: every token, then the tagline. */
@@ -5,9 +6,13 @@ function Run() {
   return (
     <>
       {TICKER.tokens.map((t) => (
-        <li key={t.symbol} className="flex shrink-0 items-center gap-2.5">
-          <img src={`${import.meta.env.BASE_URL}icons/coin.png`} alt="" width={28} height={28} className="h-7 w-7" />
-          <span className="text-xl font-bold tracking-[-0.02em]">{t.symbol}</span>
+        <li key={t.symbol} className="group flex shrink-0 items-center gap-2.5">
+          {/* Muted gray logos that turn white on hover; Cross's own mark in violet. */}
+          <TokenLogo
+            symbol={t.symbol}
+            className={`h-6 w-6 shrink-0 transition-colors duration-200 group-hover:text-white ${t.symbol === 'CROSS' ? 'text-violet-light' : 'text-dim'}`}
+          />
+          <span className="text-xl font-bold tracking-[-0.02em]">{t.symbol === 'CROSS' ? '$CROSS' : t.symbol}</span>
           <span className="text-sm text-dim">{t.name}</span>
         </li>
       ))}

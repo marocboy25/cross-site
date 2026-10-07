@@ -1,3 +1,5 @@
+import { MARK_PATHS, MARK_VIEWBOX } from '../markPaths'
+
 /**
  * 2D outlines that become the 3D brand objects. Each is an SVG string; holes
  * use fill-rule="evenodd". Everything is extruded and bevelled the same way
@@ -42,17 +44,11 @@ const svg = (paths: string[], evenOdd = false) =>
     .join('')}</svg>`
 
 /**
- * The Cross mark, traced from the logo artwork on a 1254-unit square: a top
+ * The Cross mark (outline in ../markPaths.ts), traced from the logo artwork: a top
  * chevron and two arms. Gaps between the pieces are ~47 units at their
  * narrowest, which caps how far the bevel may grow outward.
  */
-const MARK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254">${[
-  'M 330 330 C 360 285 400 265 432 265 C 470 265 495 278 530 302 L 590 342 C 605 350 650 350 665 342 L 725 302 C 760 278 785 265 822 265 C 855 265 895 285 925 330 C 927 338 922 345 916 349 L 735 460 C 700 482 665 490 627 490 C 590 490 555 482 520 460 L 338 349 C 332 345 328 338 330 330 Z',
-  'M 296 402 C 285 400 276 406 272 415 C 255 460 262 520 300 560 C 315 576 335 585 415 634 C 440 652 456 675 456 702 L 456 862 C 456 930 510 985 570 988 C 582 988 590 980 590 968 L 590 700 C 590 620 545 552 485 518 Z',
-  'M 958 402 C 969 400 978 406 982 415 C 999 460 992 520 954 560 C 939 576 919 585 839 634 C 814 652 798 675 798 702 L 798 862 C 798 930 744 985 684 988 C 672 988 664 980 664 968 L 664 700 C 664 620 709 552 769 518 Z',
-]
-  .map((d) => `<path d="${d}"/>`)
-  .join('')}</svg>`
+const MARK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${MARK_VIEWBOX} ${MARK_VIEWBOX}">${MARK_PATHS.map((d) => `<path d="${d}"/>`).join('')}</svg>`
 
 /** P2P swap: two arrows passing in opposite directions. */
 const SWAP = svg([

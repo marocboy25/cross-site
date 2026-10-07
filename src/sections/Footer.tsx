@@ -29,7 +29,10 @@ export function Footer() {
           </ul>
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-line py-6 text-sm text-dim sm:flex-row sm:justify-between">
-          <p>{FOOTER.disclaimer}</p>
+          <div className="space-y-1">
+            <p>{FOOTER.disclaimer}</p>
+            <p>{FOOTER.trademarks}</p>
+          </div>
           <p>© {new Date().getFullYear()} Cross</p>
         </div>
       </Container>
