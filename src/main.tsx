@@ -1,18 +1,24 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, HashRouter } from 'react-router-dom'
 import App from './App'
+import { enableScrollReveal } from './components/motion'
 import './index.css'
 
-// The single-file share build (see scripts/bundle-single-file.mjs) is served
-// from an arbitrary path, so it uses hash-based routing. Everything else uses
-// real URLs (/docs), which needs the host to fall back to index.html.
-const Router = window.__CROSS_ASSETS ? HashRouter : BrowserRouter
+// Dev-only asset renderer; import.meta.env.DEV is false in builds, so this
+// branch and its chunk are dropped from production.
+const RenderStudio = import.meta.env.DEV ? lazy(() => import('./dev/RenderStudio')) : null
+const isRenderPage = import.meta.env.DEV && window.location.pathname === '/__render'
+
+if (!isRenderPage) enableScrollReveal()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Router>
+    {isRenderPage && RenderStudio ? (
+      <Suspense fallback={null}>
+        <RenderStudio />
+      </Suspense>
+    ) : (
       <App />
-    </Router>
+    )}
   </React.StrictMode>,
 )

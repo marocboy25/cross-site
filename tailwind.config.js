@@ -3,44 +3,41 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Exactly the app's families (app.usecrossp2p.com): Inter for text and
+      // headlines, Space Grotesk for card titles, IBM Plex Mono for numbers/labels.
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        grotesk: ['Space Grotesk', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'monospace'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        title: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'Menlo', 'monospace'],
       },
+      // The app's palette (its CSS variables). Names describe the role, so
+      // `paper` is the page and `ink` is the main text, on a dark theme.
       colors: {
-        // Cross tokens (CSS variables, from index.css)
-        bg: 'var(--bg)',
-        panel: 'var(--panel)',
-        line: 'var(--line)',
-        muted: 'var(--muted)',
-        bid: 'var(--bid)',
-        ask: 'var(--ask)',
-        // Flat shadcn-style keys used by the borrowed components.
-        background: '#000000',
-        foreground: '#FFFFFF',
-        card: '#0C0C0F',
-        'card-foreground': '#FFFFFF',
-        border: '#2A2A30',
-        input: '#2A2A30',
-        ring: '#C026F5',
-        primary: '#C026F5',
-        'primary-foreground': '#FFFFFF',
-        secondary: '#0C0C0F',
-        'secondary-foreground': '#FFFFFF',
-        'muted-foreground': '#8C8C96',
-        accent: '#1A1A1F',
-        'accent-foreground': '#FFFFFF',
-        destructive: '#DC2626',
-      },
-      keyframes: {
-        shimmer: {
-          '0%': { backgroundPosition: '200% 0' },
-          '100%': { backgroundPosition: '-200% 0' },
+        paper: '#050508', // app --bg
+        wash: '#0A0912', // app --bg-2: bands
+        card: {
+          DEFAULT: '#0E0C1A', // app --panel-solid: panels
+          raised: '#15122A', // app --panel-2: cards floating on panels
+        },
+        ink: '#F2F1F7', // app --text
+        dim: '#8B8A99', // app --muted: secondary copy
+        line: {
+          DEFAULT: 'rgba(120, 56, 240, 0.16)', // app --line
+          strong: 'rgba(120, 56, 240, 0.38)', // app --line-strong
+        },
+        violet: {
+          DEFAULT: '#7838F0', // app --violet: buttons, highlights
+          light: '#A78BFA', // violet text, readable on the dark background
+          soft: 'rgba(120, 56, 240, 0.22)', // app's selected-chip fill
+        },
+        magenta: '#C026F5', // app --magenta: end of the primary gradient
+        bid: {
+          DEFAULT: '#3DDC97', // app --bid: positive numbers, checks
+          light: '#7FF0C0', // app's chip-bid text
         },
       },
-      animation: {
-        shimmer: 'shimmer 3s linear infinite',
+      maxWidth: {
+        page: '1200px',
       },
     },
   },
