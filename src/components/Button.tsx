@@ -18,15 +18,17 @@ export function ButtonLink({
   external = false,
   size = 'lg',
   className = '',
+  pulse = false,
   children,
   ...rest
-}: LinkProps & { size?: 'md' | 'lg' }) {
+}: LinkProps & { size?: 'md' | 'lg'; /** A soft violet pulse every few seconds while on screen. */ pulse?: boolean }) {
   const sizing = size === 'lg' ? 'h-12 px-6 text-[15px]' : 'h-10 px-4 text-sm'
   return (
     <a
       href={href}
       {...externalProps(external)}
-      className={`btn-primary inline-flex items-center justify-center gap-2 rounded-full font-semibold text-white ${sizing} ${focus} ${className}`}
+      {...(pulse ? { 'data-pulse': '' } : {})}
+      className={`btn-primary relative inline-flex items-center justify-center gap-2 rounded-full font-semibold text-white ${sizing} ${focus} ${className}`}
       {...rest}
     >
       {children}

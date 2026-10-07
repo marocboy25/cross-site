@@ -32,13 +32,27 @@
 
 /* Panel (see <AppPanel>): the app's card on a larger scale. A shade lighter
    than the page, a thin violet border, and a very soft violet glow from one
-   corner (--glow-x / --glow-y). */
+   corner (--glow-x / --glow-y) that drifts as the panel scrolls through
+   (--sp, eased in JS; --glow-dx / --glow-dy set the direction). The glow is
+   its own layer, so moving it is a transform, not a repaint. */
 .app-panel {
-  background:
-    radial-gradient(70% 60% at var(--glow-x, 100%) var(--glow-y, 0%), rgba(120, 56, 240, 0.2), rgba(120, 56, 240, 0) 70%),
-    #0e0c1a;
+  isolation: isolate;
+  background: #0e0c1a;
   border: 1px solid rgba(120, 56, 240, 0.16);
   box-shadow: rgba(0, 0, 0, 0.4) 0 0 0 1px inset, rgba(120, 56, 240, 0.25) 0 20px 60px -30px;
+}
+.app-panel::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: calc(var(--glow-x, 100%) - 70%);
+  top: calc(var(--glow-y, 0%) - 60%);
+  width: 140%;
+  height: 120%;
+  background: radial-gradient(closest-side, rgba(120, 56, 240, 0.22), rgba(120, 56, 240, 0.07) 55%, rgba(120, 56, 240, 0) 75%);
+  transform: translate3d(calc(var(--sp, 0) * var(--glow-dx, 0) * 9%), calc(var(--sp, 0) * var(--glow-dy, 0) * 9%), 0);
+  pointer-events: none;
+  will-change: transform;
 }
 
 /* Card floating on a panel: the app's raised card (as in its order forms). */
@@ -47,12 +61,22 @@
   border: 1px solid rgba(120, 56, 240, 0.38);
   box-shadow: rgba(0, 0, 0, 0.45) 0 18px 40px -16px, rgba(120, 56, 240, 0.25) 0 10px 30px -18px;
   backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
+}
+/* Touch devices: no blur. Cards move while scrolling there, and re-blurring
+   what's behind them every frame is what drops frames on phones. */
+@media (hover: none) {
+  .app-card {
+    backdrop-filter: none;
+    background: rgba(21, 18, 42, 0.97);
+  }
 }
 
 /* Primary button: the app's .btn-primary (violet to magenta, soft glow). */
 .btn-primary {
   background: linear-gradient(135deg, #7838f0 0%, #c026f5 100%);
   box-shadow: rgba(232, 121, 249, 0.25) 0 0 0 1px inset, rgba(192, 38, 245, 0.55) 0 8px 28px -8px;
+  -webkit-tap-highlight-color: transparent;
 }
 /* Real buttons only (not the hero's violet order card): a soft violet halo. */
 a.btn-primary:hover,
@@ -65,30 +89,80 @@ a.btn-primary:focus-visible {
 }
 
 /* ---- Motion ------------------------------------------------------------
-   One transition list for everything that moves, so parallax (transform),
-   reveal and hover (translate), fade (opacity) and glow (box-shadow, border)
-   never override each other. Reveal timing applies until the entrance is
-   done (see useScrollReveal), then hover timing takes over. */
+   Everything that hides or moves only runs under .motion-ready (set by
+   enableMotion(): JS on, IntersectionObserver available, no reduced-motion
+   preference), and only animates transform, translate, scale, rotate and
+   opacity. Each motion owns one property, so none override each other:
+     transform  scroll and mouse parallax (eased in JS, no transition)
+     translate  reveal slide, hover lift, intro slide
+     scale      tap press, pops, landing bumps
+     rotate     How it works step turn */
 .app-card,
 .btn-primary,
-.parallax-layer,
 [data-reveal] {
   --t-translate: 0.35s;
   --t-opacity: 0.35s;
   --t-delay: 0s;
-  transition-property: transform, translate, opacity, box-shadow, border-color;
-  transition-duration: 0.4s, var(--t-translate), var(--t-opacity), 0.3s, 0.3s;
-  transition-delay: 0s, var(--t-delay), var(--t-delay), 0s, 0s;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-scale: 0.5s;
+  transition-property: translate, opacity, box-shadow, border-color, scale;
+  transition-duration: var(--t-translate), var(--t-opacity), 0.3s, 0.3s, var(--t-scale);
+  transition-delay: var(--t-delay), var(--t-delay), 0s, 0s, 0s;
+  transition-timing-function:
+    cubic-bezier(0.22, 1, 0.36, 1), cubic-bezier(0.22, 1, 0.36, 1), ease, ease, cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.reveal-ready [data-reveal]:not([data-reveal-done]) {
+
+/* Reveal: fade and slide up, staggered by --reveal-delay. */
+.motion-ready [data-reveal]:not([data-reveal-done]) {
   --t-translate: 0.8s;
   --t-opacity: 0.7s;
   --t-delay: var(--reveal-delay, 0ms);
 }
-.reveal-ready [data-reveal]:not([data-shown]) {
+.motion-ready [data-reveal]:not([data-shown]) {
   opacity: 0;
   translate: 0 22px;
+}
+
+/* Headlines: words rise in one after another. */
+[data-words] .word {
+  display: inline-block;
+  transition:
+    opacity 0.5s ease-out,
+    translate 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--wi, 0) * 55ms + 60ms);
+}
+.motion-ready [data-words]:not([data-shown]) .word {
+  opacity: 0;
+  translate: 0 0.42em;
+}
+
+/* 3D icons: a springy pop when they reach the screen, then they float and
+   turn gently with scroll (.icon-scroll), lagging the cards in front. */
+.motion-ready [data-pop]:not([data-shown]) {
+  opacity: 0;
+  scale: 0.55;
+}
+.motion-ready [data-pop][data-shown] {
+  animation: icon-pop 0.85s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms) both;
+}
+@keyframes icon-pop {
+  0% {
+    opacity: 0;
+    scale: 0.55;
+  }
+  45% {
+    opacity: 1;
+    scale: 1.08;
+  }
+  72% {
+    scale: 0.97;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.motion-ready .icon-scroll {
+  transform: translate3d(0, calc(var(--sp, 0) * 14px), 0) rotate(calc(var(--sp, 0) * -6deg));
 }
 
 /* Hover: cards lift a touch, buttons rise a pixel. Mouse only; no movement
@@ -105,6 +179,276 @@ a.btn-primary:focus-visible {
   a.btn-primary:active {
     translate: 0 0;
   }
+}
+
+/* Tap: cards and buttons press in, then spring back. Touch only. */
+@media (hover: none) {
+  .motion-ready .app-card:active,
+  .motion-ready .btn-primary:active {
+    --t-scale: 0.12s;
+    scale: 0.97;
+  }
+}
+
+/* Primary buttons with `pulse`: a soft violet ring every few seconds, only
+   while the button is on screen ([data-inview]). */
+.motion-ready [data-pulse]::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(167, 139, 250, 0.75);
+  box-shadow: 0 0 22px rgba(120, 56, 240, 0.55);
+  opacity: 0;
+  pointer-events: none;
+}
+.motion-ready [data-pulse][data-inview]::after {
+  animation: btn-pulse 4.5s ease-out 2.2s infinite;
+}
+@keyframes btn-pulse {
+  0% {
+    opacity: 0;
+    scale: 1;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  38%,
+  100% {
+    opacity: 0;
+    scale: 1.1 1.45;
+  }
+}
+
+/* Stat strip: numbers land with a small bump; green ones flash. */
+.stat-num {
+  position: relative;
+  display: inline-block;
+  transform-origin: 0% 70%;
+}
+.stat-flash {
+  position: absolute;
+  inset: 0;
+  color: #7ff0c0;
+  filter: blur(14px);
+  opacity: 0;
+  pointer-events: none;
+}
+.motion-ready .stat-num[data-landed] {
+  animation: stat-land 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.motion-ready .stat-num[data-landed] .stat-flash {
+  animation: flash 0.9s ease-out;
+}
+@keyframes stat-land {
+  0%,
+  100% {
+    scale: 1;
+  }
+  35% {
+    scale: 1.07;
+  }
+}
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---- Hero intro (see Hero.tsx) -----------------------------------------
+   0.00s  the mark drops in with a turn (3D scene, or .mark-drop on the PNG)
+   0.45s  seller and buyer slide in from the sides and land
+   1.00s  "match": both cards pulse and a ring goes out from the mark
+   1.15s  the price impact pill pops in, 1.30s green flash */
+.motion-ready [data-intro='wait'] :is(.intro-sell, .intro-buy, .intro-pill) {
+  opacity: 0;
+}
+[data-intro='play'] .intro-sell {
+  animation:
+    intro-sell 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both,
+    intro-match 0.45s ease-out 1s;
+}
+[data-intro='play'] .intro-buy {
+  animation:
+    intro-buy 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.45s both,
+    intro-match 0.45s ease-out 1s;
+}
+@keyframes intro-sell {
+  0% {
+    opacity: 0;
+    translate: -150px 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  78% {
+    translate: 7px 0;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes intro-buy {
+  0% {
+    opacity: 0;
+    translate: 150px 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  78% {
+    translate: -7px 0;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes intro-match {
+  0%,
+  100% {
+    scale: 1;
+  }
+  40% {
+    scale: 1.06;
+  }
+}
+.intro-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200px;
+  height: 200px;
+  margin: -100px 0 0 -100px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(167, 139, 250, 0.7);
+  box-shadow: 0 0 30px rgba(120, 56, 240, 0.5), inset 0 0 30px rgba(120, 56, 240, 0.35);
+  opacity: 0;
+  pointer-events: none;
+}
+[data-intro='play'] .intro-ring {
+  animation: intro-ring 0.8s ease-out 1s;
+}
+@keyframes intro-ring {
+  0% {
+    opacity: 0.9;
+    scale: 0.45;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.7;
+  }
+}
+[data-intro='play'] .intro-pill {
+  animation: intro-pill 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.15s both;
+}
+@keyframes intro-pill {
+  0% {
+    opacity: 0;
+    scale: 0.6;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.08;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.intro-pill::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -1px;
+  border-radius: inherit;
+  background: rgba(61, 220, 151, 0.32);
+  box-shadow: 0 0 26px rgba(61, 220, 151, 0.6);
+  opacity: 0;
+  pointer-events: none;
+}
+[data-intro='play'] .intro-pill::after {
+  animation: flash 0.8s ease-out 1.3s;
+}
+/* The static mark's version of the drop, when the 3D scene is late or unavailable. */
+.mark-drop {
+  animation: mark-drop 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes mark-drop {
+  0% {
+    opacity: 0;
+    transform: perspective(900px) translateY(-34%) rotateY(-300deg) scale(0.75);
+  }
+  70% {
+    opacity: 1;
+    transform: perspective(900px) translateY(2%) rotateY(8deg) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(900px) translateY(0) rotateY(0) scale(1);
+  }
+}
+
+/* ---- How it works, phones and tablets (see useStepSequence) -------------
+   The panel pins while the section scrolls; one step shows at a time and
+   the arrows turn a little per step. Without [data-seq] it's a plain stack. */
+.seq-dots {
+  display: none;
+}
+[data-seq] {
+  height: 240vh;
+}
+[data-seq] .seq-pin {
+  position: sticky;
+  top: var(--pin-top, 80px);
+}
+[data-seq] ol {
+  display: grid;
+}
+[data-seq] ol > li {
+  grid-area: 1 / 1;
+  margin: 0;
+  opacity: 0;
+  translate: 0 22px;
+  pointer-events: none;
+  transition:
+    opacity 0.35s ease,
+    translate 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-seq] ol > li[data-past] {
+  translate: 0 -22px;
+}
+[data-seq] ol > li[data-on] {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+[data-seq] .seq-icon {
+  rotate: calc((var(--step, 0) - 1) * 12deg);
+  transition: rotate 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-seq] .seq-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+[data-seq] .seq-dots > span {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: #a78bfa;
+  opacity: 0.25;
+  transition: opacity 0.3s;
+}
+[data-seq] .seq-dots > span[data-on] {
+  opacity: 1;
 }
 
 /* Token ticker: four identical runs, shifted by two of them per loop. */

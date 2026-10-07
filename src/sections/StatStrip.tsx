@@ -13,7 +13,7 @@ export function StatStrip() {
             <div key={s.label} {...reveal(i)} className="flex flex-col-reverse">
               <dt className="eyebrow mt-3">{s.label}</dt>
               <dd className={`display text-[52px] sm:text-[72px] lg:text-[84px] ${s.positive ? 'text-bid' : 'text-ink'}`}>
-                <CountUp value={s.value} delay={i * 90 + 150} />
+                <CountUp value={s.value} delay={i * 70 + 120} flash={s.positive} />
               </dd>
             </div>
           ))}

@@ -30,14 +30,44 @@ function useCursorFromCanvas() {
   return cursor
 }
 
-/** Calls onReady once, on the first rendered frame. */
-function useReadyOnce(onReady?: () => void) {
-  const ready = useRef(false)
-  return () => {
-    if (ready.current) return
-    ready.current = true
-    onReady?.()
+/** The intro: the mark drops in with one quick turn and settles facing you. */
+const INTRO_SECONDS = 0.8
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+const easeOutBack = (t: number) => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2)
+
+/** Resting height: a slow float. */
+const restY = (t: number) => 0.1 + Math.sin(t * 0.8) * 0.06
+
+/**
+ * Calls onReady once, on the first rendered frame; if it returns true the
+ * intro plays from that frame. Returns the intro's progress (0..1) while it
+ * plays, else null.
+ */
+function useIntro(onReady?: () => boolean | void) {
+  const state = useRef({ ready: false, start: -1 })
+  return (t: number) => {
+    const s = state.current
+    if (!s.ready) {
+      s.ready = true
+      if (onReady?.()) s.start = t
+    }
+    if (s.start < 0) return null
+    const p = (t - s.start) / INTRO_SECONDS
+    if (p >= 1) {
+      s.start = -1
+      return null
+    }
+    return p
   }
+}
+
+/** Poses the mark at intro progress `p`, ending exactly at the rest pose. */
+function poseIntro(g: Group, p: number, t: number) {
+  const drop = easeOutBack(Math.min(1, p / 0.85))
+  g.position.y = restY(t) + (1 - drop) * 2.4
+  g.rotation.y = (1 - easeOutCubic(p)) * -Math.PI * 2
+  g.rotation.x = 0
+  g.scale.setScalar(0.75 + 0.25 * easeOutCubic(Math.min(1, p / 0.6)))
 }
 
 /**
@@ -45,21 +75,23 @@ function useReadyOnce(onReady?: () => void) {
  * always reads. On top of that: a slow float, a whisper of drift, and an
  * eased tilt toward the pointer, clamped.
  */
-function CursorMark({ onReady }: { onReady?: () => void }) {
+function CursorMark({ onReady }: { onReady?: () => boolean | void }) {
   const group = useRef<Group>(null)
-  const markReady = useReadyOnce(onReady)
+  const intro = useIntro(onReady)
   const cursor = useCursorFromCanvas()
   useFrame((state, delta) => {
     const g = group.current
     if (!g) return
-    markReady()
     const t = state.clock.elapsedTime
+    const p = intro(t)
+    if (p !== null) return poseIntro(g, p, t)
+    g.scale.setScalar(1)
     const targetY = MathUtils.clamp(cursor.current.x * 0.3 + Math.sin(t * 0.3) * 0.05, -MAX_TILT, MAX_TILT)
     const targetX = MathUtils.clamp(-cursor.current.y * 0.25 + Math.sin(t * 0.45) * 0.03, -MAX_TILT, MAX_TILT)
     const ease = 1 - Math.exp(-delta * 2.5)
     g.rotation.y += (targetY - g.rotation.y) * ease
     g.rotation.x += (targetX - g.rotation.x) * ease
-    g.position.y = 0.1 + Math.sin(t * 0.8) * 0.06
+    g.position.y = restY(t)
   })
   return (
     <group ref={group}>
@@ -122,16 +154,18 @@ function useTouchDrag() {
  * under the finger; on release a soft spring brings it back to the front,
  * with a small overshoot.
  */
-function TouchMark({ onReady }: { onReady?: () => void }) {
+function TouchMark({ onReady }: { onReady?: () => boolean | void }) {
   const group = useRef<Group>(null)
-  const markReady = useReadyOnce(onReady)
+  const intro = useIntro(onReady)
   const drag = useTouchDrag()
   const velocity = useRef({ x: 0, y: 0 })
   useFrame((state, delta) => {
     const g = group.current
     if (!g) return
-    markReady()
     const t = state.clock.elapsedTime
+    const p = intro(t)
+    if (p !== null) return poseIntro(g, p, t) // the spring starts from rest, velocity 0
+    g.scale.setScalar(1)
     const dt = Math.min(delta, 1 / 30) // keep the spring stable after a dropped frame
     const dragging = drag.current.id !== -1
     // Idle loop: slow, slight, never far from facing the viewer.
@@ -147,7 +181,7 @@ function TouchMark({ onReady }: { onReady?: () => void }) {
     v.x += ((targetX - g.rotation.x) * stiffness - v.x * damping) * dt
     g.rotation.y += v.y * dt
     g.rotation.x += v.x * dt
-    g.position.y = 0.1 + Math.sin(t * 0.8) * 0.06
+    g.position.y = restY(t)
   })
   return (
     <group ref={group}>
@@ -159,8 +193,8 @@ function TouchMark({ onReady }: { onReady?: () => void }) {
 type MarkCanvasProps = {
   /** Render frames only while visible on screen. */
   active?: boolean
-  /** First frame drawn: safe to hide the static stand-in. */
-  onReady?: () => void
+  /** First frame drawn: safe to hide the static stand-in. Return true to play the intro. */
+  onReady?: () => boolean | void
   onFail?: () => void
 }
 

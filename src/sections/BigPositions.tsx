@@ -1,6 +1,6 @@
 import { TextLink } from '../components/Button'
 import { AppPanel, FloatCard, Icon3D } from '../components/Panel'
-import { reveal } from '../components/motion'
+import { reveal, Words } from '../components/motion'
 import { Section } from '../components/Section'
 import { LINKS, OTC } from '../content/site'
 
@@ -24,7 +24,9 @@ export function BigPositions() {
           </div>
           <div {...reveal(2)}>
             <p className="eyebrow text-violet-light">{OTC.eyebrow}</p>
-            <h2 className="display mt-3 text-balance text-[34px] sm:text-[44px]">{OTC.title}</h2>
+            <h2 className="display mt-3 text-balance text-[34px] sm:text-[44px]">
+              <Words text={OTC.title} />
+            </h2>
             <p className="mt-4 leading-relaxed text-dim">{OTC.body}</p>
             <TextLink href={LINKS.appOtc} external className="mt-7">
               {OTC.link} →
