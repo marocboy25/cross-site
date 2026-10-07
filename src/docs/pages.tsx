@@ -1,9 +1,13 @@
 import type { ReactNode } from 'react'
 import { CHAIN, CONTRACTS, LINKS } from '../content/site'
+import { DOC_META, type DocMeta } from './meta'
 import { Address, Callout, Ext, H2, Todo } from './ui'
 
+export { pagePath } from './meta'
+
 /*
- * The docs, one entry per page, in sidebar order.
+ * The docs' page bodies, keyed by slug. Titles, groups, leads and order live
+ * in meta.ts.
  *
  * Source of truth is the live app (app.usecrossp2p.com, read 8 Oct 2026:
  * Board, Create order, OTC desk + Propose, Trust, Referrals, Savings, My
@@ -11,23 +15,13 @@ import { Address, Callout, Ext, H2, Todo } from './ui'
  * here is invented: anything the app doesn't show is a <Todo>.
  */
 
-export type DocPage = {
-  slug: string
-  title: string
-  group: string
-  /** One line for the page header and the meta description. */
-  lead: string
-  body: () => ReactNode
-}
+export type DocPage = DocMeta & { body: () => ReactNode }
 
 const APP = LINKS.app
 
-export const PAGES: DocPage[] = [
+const BODIES: { slug: string; body: () => ReactNode }[] = [
   {
     slug: '',
-    title: 'Introduction',
-    group: 'Start here',
-    lead: 'Cross is a peer to peer exchange. You trade with another person, not a pool.',
     body: () => (
       <>
         <H2>What Cross is</H2>
@@ -118,9 +112,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'getting-started',
-    title: 'Getting started',
-    group: 'Start here',
-    lead: `A browser wallet, ${CHAIN.name}, and something to trade with.`,
     body: () => (
       <>
         <H2>What you need</H2>
@@ -218,9 +209,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'trading/fill',
-    title: 'Fill an order',
-    group: 'Trading',
-    lead: 'Buy from an order on the Board. You pay the seller\'s price plus a 0.5% fee.',
     body: () => (
       <>
         <H2>The Board</H2>
@@ -268,9 +256,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'trading/create',
-    title: 'Create an order',
-    group: 'Trading',
-    lead: 'Lock your tokens in escrow and name your price.',
     body: () => (
       <>
         <H2>Post an order</H2>
@@ -330,9 +315,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'trading/cancel',
-    title: 'Cancel an order',
-    group: 'Trading',
-    lead: "Take back whatever hasn't filled, any time. Only you can.",
     body: () => (
       <>
         <H2>How cancelling works</H2>
@@ -363,9 +345,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'otc',
-    title: 'OTC desk',
-    group: 'Trading',
-    lead: 'For blocks too big for any pool. Both sides pay into escrow, and the contract swaps them at once.',
     body: () => (
       <>
         <H2>What it's for</H2>
@@ -418,9 +397,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'fees',
-    title: 'Fees',
-    group: 'Using Cross',
-    lead: 'One fee on filled trades: 0.5%, paid by the buyer. Sellers pay nothing.',
     body: () => (
       <>
         <H2>The trading fee</H2>
@@ -458,9 +434,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'referrals',
-    title: 'Referrals',
-    group: 'Using Cross',
-    lead: 'Earn 20% of the fee on trades by people you bring in, paid in ETH at settlement.',
     body: () => (
       <>
         <H2>How it works</H2>
@@ -489,9 +462,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'token-trust',
-    title: 'Token trust',
-    group: 'Using Cross',
-    lead: 'Anyone can list any token. These checks help you decide for yourself.',
     body: () => (
       <>
         <H2>Anyone can list any token</H2>
@@ -539,9 +509,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'cross-token',
-    title: '$CROSS token',
-    group: 'Using Cross',
-    lead: "Cross's own token. Details to come.",
     body: () => (
       <>
         <Callout title="Not live yet">
@@ -562,9 +529,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'security',
-    title: 'Security',
-    group: 'Safety',
-    lead: 'Tested, capped, and audit pending. Here is what that means for you.',
     body: () => (
       <>
         <H2>Per-order caps</H2>
@@ -613,9 +577,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'contracts',
-    title: 'Contracts',
-    group: 'Safety',
-    lead: `Cross's contracts on ${CHAIN.name} (chain ID ${CHAIN.id}).`,
     body: () => (
       <>
         <H2>Addresses</H2>
@@ -662,9 +623,6 @@ export const PAGES: DocPage[] = [
   },
   {
     slug: 'faq',
-    title: 'FAQ',
-    group: 'Safety',
-    lead: 'Short answers to common questions.',
     body: () => (
       <>
         <H2>Is there really no slippage?</H2>
@@ -712,10 +670,15 @@ export const PAGES: DocPage[] = [
   },
 ]
 
+/** Every page in sidebar order: its metadata plus its body. */
+export const PAGES: DocPage[] = DOC_META.map((meta) => {
+  const entry = BODIES.find((b) => b.slug === meta.slug)
+  if (!entry) throw new Error(`docs: no body for "${meta.slug}"`)
+  return { ...meta, body: entry.body }
+})
+
 /** Page for a pathname like /docs or /docs/trading/fill, or undefined. */
 export const findPage = (path: string) => {
   const slug = path.replace(/^\/docs\/?/, '').replace(/\/$/, '')
   return PAGES.find((p) => p.slug === slug)
 }
-
-export const pagePath = (page: DocPage) => (page.slug ? `/docs/${page.slug}` : '/docs')

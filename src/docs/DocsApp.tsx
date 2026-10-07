@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ButtonLink } from '../components/Button'
 import { Logo } from '../components/Logo'
 import { LINKS } from '../content/site'
+import { SITE_URL } from './meta'
 import { findPage, pagePath, PAGES, type DocPage } from './pages'
 import { interceptDocsLinks, usePath } from './router'
 
@@ -136,7 +137,7 @@ function usePageMeta(page: DocPage | undefined, path: string) {
   useEffect(() => {
     document.title = page ? `${page.title} · Cross Docs` : 'Not found · Cross Docs'
     document.querySelector('meta[name="description"]')?.setAttribute('content', page?.lead ?? 'Cross documentation.')
-    document.querySelector('link[rel="canonical"]')?.setAttribute('href', `https://www.usecrossp2p.com${page ? pagePath(page) : path}`)
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', `${SITE_URL}${page ? pagePath(page) : path}`)
   }, [page, path])
 }
 
