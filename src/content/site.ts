@@ -14,7 +14,7 @@ export const LINKS = {
   appCreate: 'https://app.usecrossp2p.com/create',
   x: 'https://x.com/CrossP2P',
   xHandle: '@CrossP2P',
-  docs: '[DOCS_URL]',
+  docs: '/docs',
   terms: '[TERMS_URL]',
 } as const
 
@@ -190,7 +190,7 @@ export const FOOTER = {
 }
 
 /** Still needed before launch. */
-export const PLACEHOLDERS = ['[DOCS_URL]', '[TERMS_URL]'] as const
+export const PLACEHOLDERS = ['[TERMS_URL]'] as const
 
 export const isPlaceholder = (value: string) => /^\[[A-Z_]+\]$/.test(value)
 

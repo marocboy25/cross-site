@@ -13,7 +13,7 @@ export function Facts() {
         <div>
           <SectionHeading eyebrow={FACTS.eyebrow} title={FACTS.title} />
           {hasDocs && (
-            <TextLink href={LINKS.docs} external className="mt-6">
+            <TextLink href={LINKS.docs} className="mt-6">
               {FACTS.more} →
             </TextLink>
           )}
